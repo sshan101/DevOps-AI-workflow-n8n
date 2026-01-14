@@ -1,0 +1,49 @@
+name: n8n CI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create ci-test workflow file
+        run: |
+          mkdir -p .github/workflows
+          cat << 'EOF' > .github/workflows/ci-test.yml
+          name: CI Test
+
+          on:
+            workflow_dispatch:
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - name: Echo from CI Test
+                  run: echo "Hello from CI Test workflow!"
+          EOF
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit ci-test workflow file
+        run: |
+          git add .github/workflows/ci-test.yml || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Add ci-test GitHub Actions workflow" || true
+            git push
+          fi
+
+      - name: Say hello
+        run: echo "Hello from GitHub Actions!"
