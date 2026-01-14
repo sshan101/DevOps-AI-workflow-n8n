@@ -1,0 +1,25 @@
+name: n8n CI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        run: echo "Hello from GitHub Actions!"
+      - name: Self-mutate: create n8n-ci.yml if missing
+        run: |
+          FILE=.github/workflows/n8n-ci.yml
+          if [ ! -f "$FILE" ]; then
+            mkdir -p .github/workflows
+            echo "name: n8n CI\n\non:\n  push:\n  workflow_dispatch:\n\njobs:\n  hello:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Say Hello\n        run: echo \"Hello from GitHub Actions!\"" > $FILE
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add $FILE
+            git commit -m "ci: add n8n-ci.yml via self-mutation" || echo "No changes to commit."
+            git push || echo "Push failed. Possibly due to permissions."
+          else
+            echo "$FILE already exists. Skipping creation."
